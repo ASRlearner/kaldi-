@@ -750,8 +750,9 @@ bool Output::Open(const std::string &wxfn, bool binary, bool header) {
   }
 }
 
-
+//kaldi中输入函数
 Input::Input(const std::string &rxfilename, bool *binary): impl_(NULL) {
+  //如果打开输入文件失败 则报错
   if (!Open(rxfilename, binary)) {
     KALDI_ERR << "Error opening input stream "
               << PrintableRxfilename(rxfilename);

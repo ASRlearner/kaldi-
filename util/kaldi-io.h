@@ -223,7 +223,7 @@ class Input {
   // in the case of a pipe [kPipeInput], and always zero otherwise.
   int32 Close();
 
-  // Returns the underlying stream. Throws if !IsOpen()
+  // 返回相关的stream. Throws if !IsOpen()
   std::istream &Stream();
 
   // Destructor does not throw: input streams may legitimately fail so we

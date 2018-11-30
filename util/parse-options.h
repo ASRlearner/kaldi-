@@ -33,6 +33,7 @@ namespace kaldi {
 //parseoptions类用于命令行选项的语法分析
 /// The class ParseOptions is for parsing command-line options; see
 /// \ref parse_options for more documentation.
+  //parseoptions继承自optionsItf
 class ParseOptions : public OptionsItf {
  public:
   explicit ParseOptions(const char *usage) :
@@ -70,7 +71,7 @@ class ParseOptions : public OptionsItf {
 
   ~ParseOptions() {}
 
-  // Methods from the interface
+  // 接口中的方法
   void Register(const std::string &name,
                 bool *ptr, const std::string &doc);
   void Register(const std::string &name,
@@ -180,7 +181,7 @@ class ParseOptions : public OptionsItf {
   float ToFloat(const std::string &str);
   double ToDouble(const std::string &str);
 
-  // maps for option variables
+  //将字符串映射到任意类型变量
   std::map<std::string, bool*> bool_map_;
   std::map<std::string, int32*> int_map_;
   std::map<std::string, uint32*> uint_map_;
@@ -190,6 +191,7 @@ class ParseOptions : public OptionsItf {
 
   /**
      Structure for options' documentation
+     选项文档的结构
    */
   struct DocInfo {
     DocInfo() {}
@@ -260,6 +262,6 @@ template<class C1, class C2> void ReadConfigsFromFile(const std::string
 
 
 
-}  // namespace kaldi
+}  // 命名空间kaldi
 
 #endif  // KALDI_UTIL_PARSE_OPTIONS_H_

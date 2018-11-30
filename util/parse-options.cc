@@ -35,7 +35,7 @@
 
 namespace kaldi {
 
-
+//拷贝构造函数
 ParseOptions::ParseOptions(const std::string &prefix,
                            OptionsItf *other):
     print_args_(false), help_(false), usage_(""), argc_(0), argv_(NULL) {
@@ -53,6 +53,7 @@ ParseOptions::ParseOptions(const std::string &prefix,
   }
 }
 //parseoptions类成员函数的定义
+//其中只有ptr的类型可以是其他任意数据类型
 void ParseOptions::Register(const std::string &name,
                             bool *ptr, const std::string &doc) {
   RegisterTmpl(name, ptr, doc);
@@ -84,6 +85,7 @@ void ParseOptions::Register(const std::string &name,
 }
 
 // old-style, used for registering application-specific parameters
+//定义模板类T 可以是任意类型数据
 template<typename T>
 void ParseOptions::RegisterTmpl(const std::string &name, T *ptr,
                                 const std::string &doc) {
@@ -92,12 +94,13 @@ void ParseOptions::RegisterTmpl(const std::string &name, T *ptr,
   } else {
     KALDI_ASSERT(prefix_ != "" &&
                  "Cannot use empty prefix when registering with prefix.");
-    std::string new_name = prefix_ + '.' + name;  // name becomes prefix.name
+    std::string new_name = prefix_ + '.' + name;  // 名称变成前缀.name
     other_parser_->Register(new_name, ptr, doc);
   }
 }
 
 // does the common part of the job of registering a parameter
+//登记参数
 template<typename T>
 void ParseOptions::RegisterCommon(const std::string &name, T *ptr,
                                   const std::string &doc, bool is_standard) {
