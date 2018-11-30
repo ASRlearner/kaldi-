@@ -27,7 +27,7 @@
 
 namespace kaldi {
 
-//参数为词id 词符号 line_break还不清楚 服务器套接字 客户端地址
+//参数为词id 词符号表 line_break还不清楚 服务器套接字 客户端地址
 void SendPartialResult(const std::vector<int32>& words,
                        const fst::SymbolTable *word_syms,
                        const bool line_break,
@@ -49,6 +49,7 @@ void SendPartialResult(const std::vector<int32>& words,
   ssize_t sent = sendto(serv_sock, sstream.str().c_str(), sstream.str().size(),
                         0, reinterpret_cast<const sockaddr*>(&client_addr),
                         sizeof(client_addr));
+  //如果sent为-1则报错 sendto用于发送识别结果
   if (sent == -1)
     KALDI_WARN << "sendto() call failed when tried to send recognition results";
 }
@@ -77,20 +78,23 @@ int main(int argc, char *argv[]) {
         "Example: online-server-gmm-decode-faster --rt-min=0.3 --rt-max=0.5 "
         "--max-active=4000 --beam=12.0 --acoustic-scale=0.0769 "
         "model HCLG.fst words.txt '1:2:3:4:5' 1234 lda-matrix";
+    //po是parseoptions对象，parseoptions用于读取命令行中的命令
     ParseOptions po(usage);
     //设置参数的默认值
+    //basefloat是kaldi中定义的浮点类型
     BaseFloat acoustic_scale = 0.1;
     int32 cmn_window = 600,
       min_cmn_window = 100; // 只在语音的开始阶段添加一秒的延迟
     int32 right_context = 4, left_context = 4;
-
+    //这一段还不清楚具体的作用 可能与解码相关
     kaldi::DeltaFeaturesOptions delta_opts;
     delta_opts.Register(&po);
     OnlineFasterDecoderOpts decoder_opts;
     OnlineFeatureMatrixOptions feature_reading_opts;
     decoder_opts.Register(&po, true);
     feature_reading_opts.Register(&po);
-    
+    //register有三个参数其中 参数1和3是字符串 参数2是任意类型的数据
+    //登记输入的参数选项值
     po.Register("left-context", &left_context, "Number of frames of left context");
     po.Register("right-context", &right_context, "Number of frames of right context");
     po.Register("acoustic-scale", &acoustic_scale,
@@ -108,29 +112,37 @@ int main(int argc, char *argv[]) {
       return 1;
     }
     //读取所有参数并且赋值给相应的变量 online-feat-input
-    std::string model_rxfilename = po.GetArg(1),   //模型读取路径
-        fst_rxfilename = po.GetArg(2),               //fst解码图读取路径
-        word_syms_filename = po.GetArg(3),       //words文件读取路径
-        silence_phones_str = po.GetArg(4),      //静音音素
-        lda_mat_rspecifier = po.GetOptArg(6);      //lad特征矩阵读取
+    std::string model_rxfilename = po.GetArg(1),   //最终得到的模型  final.mdl
+        fst_rxfilename = po.GetArg(2),               //fst解码图读取路径HCLG.fst
+        word_syms_filename = po.GetArg(3),       //words文件读取路径 words.txt
+        silence_phones_str = po.GetArg(4),      //静音音素  '1:2:3:4:5'
+        lda_mat_rspecifier = po.GetOptArg(6);      //lad特征矩阵读取  final.mat
+    //atoi()实现将字符串转化为整形数字
+    //c_str()将string类型转化成c中字符串样式
     int32 udp_port = atoi(po.GetArg(5).c_str());    //udp端口号 获取参数5的字符串赋值给udp_port
      
      //如果lda特征矩阵参数不为空
+    //输入lda矩阵
     Matrix<BaseFloat> lda_transform;
     if (lda_mat_rspecifier != "") {
       bool binary_in;
+      //ki是kaldi中input类的实例
       //以二进制方式输入lda特征矩阵
       Input ki(lda_mat_rspecifier, &binary_in);
       lda_transform.Read(ki.Stream(), binary_in);
     }
      //读取静音音素
     std::vector<int32> silence_phones;
+    //如果无法将字符按":"拆分后转化成数字，则报错
     if (!SplitStringToIntegers(silence_phones_str, ":", false, &silence_phones))
         KALDI_ERR << "Invalid silence-phones string " << silence_phones_str;
+    //如果未输入静音音素
     if (silence_phones.empty())
         KALDI_ERR << "No silence phones given!";
     //以二进制方式读取模型文件
     TransitionModel trans_model;
+    //对角协方差混合高斯矩阵
+    //输入最终训练得到的模型
     AmDiagGmm am_gmm;
     {
         bool binary;
@@ -149,6 +161,8 @@ int main(int argc, char *argv[]) {
     // We are not properly registering/exposing MFCC and frame extraction options,
     // because there are parts of the online decoding code, where some of these
     // options are hardwired(ToDo: we should fix this at some point)
+    //我们并未适当地登记/显示MFCC和帧提取选项，因为有部分的在线解码代码中的选项是固定的
+    //在某些时候我们需要自己修改它
     MfccOptions mfcc_opts;
     mfcc_opts.use_energy = false;
 
