@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     typedef OnlineFeInput<Mfcc> FeInput;
 
     //portaudio源的超时时间间隔
-    const int32 kTimeout = 500; // half second
+    const int32 kTimeout = 500; 
     // PortAudio的采样频率
     const int32 kSampleFreq = 16000;
     // PortAudio内部用户态缓冲字节数
@@ -94,6 +94,7 @@ int main(int argc, char *argv[]) {
     mfcc_opts.use_energy = false;
     int32 frame_length = mfcc_opts.frame_opts.frame_length_ms = 25;
     int32 frame_shift = mfcc_opts.frame_opts.frame_shift_ms = 10;
+    //au_src是一个在线音频源接口(onlineaudiosourceinterface)对象
     OnlinePaSource au_src(kTimeout, kSampleFreq, kPaRingSize, kPaReportInt);
     Mfcc mfcc(mfcc_opts);
     FeInput fe_input(&au_src, &mfcc,
@@ -109,7 +110,8 @@ int main(int argc, char *argv[]) {
       if (feats.NumRows() > 0) {
         std::stringstream ss;
         feats.Write(ss, true); // serialize features as binary data
-        //无连接的数据报方式传输数据，发送错误时返回-1
+        //无连接的数据报方式传输数据，
+        //sendto函数返回实际发送的数据字节长度，发送错误时返回-1
         ssize_t sent = sendto(sock_desc,
                               ss.str().c_str(),
                               ss.str().size(), 0,
@@ -118,8 +120,10 @@ int main(int argc, char *argv[]) {
         //如果udp连接发送错误则报错，函数调用失败
         if (sent == -1)
           KALDI_ERR << "sendto() call failed!";
+        //recvfrom函数返回接收到的字节长度 如果出错则返回-1
         ssize_t rcvd = recvfrom(sock_desc, buf, sizeof(buf), 0,
                                 server_addr->ai_addr, &server_addr->ai_addrlen);
+        //判断是否出错
         if (rcvd == -1 && errno != EWOULDBLOCK && errno != EAGAIN) {
           KALDI_ERR << "recvfrom() failed unexpectedly!";
         } else if (rcvd > 0) {
