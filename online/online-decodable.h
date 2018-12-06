@@ -31,7 +31,7 @@ namespace kaldi {
 
 
 
-// A decodable, taking input from an OnlineFeatureInput object on-demand
+// A decodable, taking input from an OnlineFeatureInput object on-demand从onlinefeatureinput对象那里获得的可解码输入
 class OnlineDecodableDiagGmmScaled : public DecodableInterface {
  public:
   OnlineDecodableDiagGmmScaled(const AmDiagGmm &am,

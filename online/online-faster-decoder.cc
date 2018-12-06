@@ -229,7 +229,7 @@ bool OnlineFasterDecoder::EndOfUtterance() {
 
 OnlineFasterDecoder::DecodeState
 OnlineFasterDecoder::Decode(DecodableInterface *decodable) {
-  if (state_ == kEndFeats || state_ == kEndUtt) // new utterance
+  if (state_ == kEndFeats || state_ == kEndUtt) // 新的语音
     ResetDecoder(state_ == kEndFeats);
   ProcessNonemitting(std::numeric_limits<float>::max());
   int32 batch_frame = 0;

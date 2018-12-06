@@ -29,15 +29,18 @@
 // This file hosts the declarations of various auxiliary functions, used by
 // the binaries in "onlinebin" directory. These functions are not part of the
 // core online decoding infrastructure, but rather artefacts of the particular
-// implementation of the binaries.
+// implementation of the binaries.该文件声明了各种各样的辅助函数，由onlinebin目录下的二进制文件使用。
+//这些函数并非在线解码基础架构核心的一部分，而是执行二进制文件的特殊人为方式。
 
 namespace kaldi {
 
-// Reads a decoding graph from a file
+//从文件中读取解码图
 fst::Fst<fst::StdArc> *ReadDecodeGraph(std::string filename);
 
 // Prints a string corresponding to (a possibly partial) decode result as
 // and adds a "new line" character if "line_break" argument is true
+//打印一个对应于解码结果(可能只是一部分)的字符串并且如果line_break值为真，
+//添加一个"new line"字符
 void PrintPartialResult(const std::vector<int32>& words,
                         const fst::SymbolTable *word_syms,
                         bool line_break);
