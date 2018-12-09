@@ -45,7 +45,7 @@ int PaCallback(const void *input, void *output,
   return pa_src->Callback(input, output, frame_count, time_info, status_flags);
 }
 
-
+//online-net-client中调用的类
 OnlinePaSource::OnlinePaSource(const uint32 timeout,
                                const uint32 sample_rate,
                                const uint32 rb_size,
@@ -77,7 +77,7 @@ OnlinePaSource::OnlinePaSource(const uint32 timeout,
   PaError paerr = Pa_Initialize();
   if (paerr != paNoError)
     throw runtime_error("PortAudio initialization error");
-  // Monophone, 16-bit input hardcoded
+  // 单声道,16位输入 16-bit input hardcoded
   KALDI_ASSERT(sizeof(SampleType) == 2 &&
                "The current OnlinePaSource code assumes 16-bit input");
   paerr = Pa_OpenDefaultStream(&pa_stream_, 1, 0, paInt16, sample_rate_, 0,
@@ -102,6 +102,7 @@ OnlinePaSource::~OnlinePaSource() {
 bool OnlinePaSource::Read(Vector<BaseFloat> *data) {
   if (!pa_started_) {  // start stream the first time Read() is called
     PaError paerr = Pa_StartStream(pa_stream_);
+    //打开portaudio流出错
     if (paerr != paNoError)
       throw std::runtime_error("Error while trying to open PortAudio stream");
     pa_started_ = true;
@@ -153,6 +154,7 @@ bool OnlinePaSource::Read(Vector<BaseFloat> *data) {
 
 
 // Accepts the data and writes it to the ring buffer
+//接收数据并且将它写入用户态缓冲区
 int OnlinePaSource::Callback(const void *input, void *output,
                              ring_buffer_size_t frame_count,
                              const PaStreamCallbackTimeInfo *time_info,

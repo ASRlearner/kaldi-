@@ -38,8 +38,7 @@ namespace kaldi {
 class OnlineFeatInputItf {
  public:
   // 以一些方式生成特征向量
-  // The features may be e.g. extracted from an audio samples, received and/or
-  // transformed from another OnlineFeatInput class etc.
+  //这些特征很可能是 例如从音频样本中接收并提取，或者从另一个在线特征输入类转换而来
   //
   // "output" - a matrix to store the extracted feature vectors in its rows.
   //            The number of rows (NumRows()) of "output" when the function is
@@ -51,7 +50,7 @@ class OnlineFeatInputItf {
   //            In that case you should try again.  The function will return "false"
   //            when it knows the stream is finished, but if it returns nothing
   //            several times in a row you may want to terminate processing the
-  //            stream.
+  //            stream.按行存储了提取出的特征向量的矩阵。函数调用时输出的行数表明了用户需要的帧数
   //
   // Note: similar to the OnlineAudioInput::Read(), Compute() previously
   //       had a second argument - "timeout". Again we decided against including
@@ -74,11 +73,11 @@ class OnlineFeatInputItf {
 };
 
 
-// Acts as a proxy to an underlying OnlineFeatInput.
-// Applies cepstral mean normalization
+// Acts as a proxy to an underlying OnlineFeatInput.作为潜在在线特征输入的代理
+// 运用倒谱均值归一化
 class OnlineCmnInput: public OnlineFeatInputItf {
  public:
-  // "input" - the underlying(unnormalized) feature source
+  // "input" - 未归一化的在线特征输入
   // "cmn_window" - the count of the preceding vectors over which the average is
   //                calculated
   // "min_window" - the minimum count of frames for which it will compute the
@@ -157,7 +156,7 @@ class OnlineCacheInput : public OnlineFeatInputItf {
 // Accepts features over an UDP socket
 // The current implementation doesn't support the "timeout" -
 // the server is waiting for data indefinetily long time.
-//接收udp套接字传来的特征 目前的实现不支持暂停 服务器长时间等待数据的到来
+//接收udp套接字传来的特征 目前的实现不支持暂停——服务器长时间等待数据的到来
 class OnlineUdpInput : public OnlineFeatInputItf {
  public:
   OnlineUdpInput(int32 port, int32 feature_dim);
@@ -186,6 +185,7 @@ class OnlineUdpInput : public OnlineFeatInputItf {
 // [output-dim x input-dim] but we accept an affine transformation too.
 //拼接输入特征并且运用一个转换矩阵。
 //注意：转换矩阵通常是线性变换
+//只有在输入了lda矩阵的情况下调用这个类
 class OnlineLdaInput: public OnlineFeatInputItf {
  public:
   OnlineLdaInput(OnlineFeatInputItf *input,
@@ -219,7 +219,7 @@ class OnlineLdaInput: public OnlineFeatInputItf {
   const int32 input_dim_; // dimension of the feature vectors before xform
   const int32 left_context_;
   const int32 right_context_;
-  Matrix<BaseFloat> linear_transform_; // transform matrix (linear part only)
+  Matrix<BaseFloat> linear_transform_; // LDA转换矩阵 (只有线性部分)
   Vector<BaseFloat> offset_; // Offset, if present; else empty.
   Matrix<BaseFloat> remainder_; // The last few frames of the input, that may
   // be needed for context purposes.
@@ -228,8 +228,8 @@ class OnlineLdaInput: public OnlineFeatInputItf {
 };
 
 
-// Does the time-derivative computation (e.g., adding deltas and delta-deltas).
-// This is standard in more "old-fashioned" feature extraction.  Like an online
+// 计算时间导数 (e.g., 添加 deltas 和 delta-deltas).
+// 这是更加陈旧的特征提取标准.  Like an online
 // version of the function ComputeDeltas in feat/feature-functions.h, where the
 // class DeltaFeaturesOptions is also defined.
 class OnlineDeltaInput: public OnlineFeatInputItf {
@@ -271,13 +271,14 @@ class OnlineDeltaInput: public OnlineFeatInputItf {
 
 // Implementation, that is meant to be used to read samples from an
 // OnlineAudioSource and to extract MFCC/PLP features in the usual way
+//执行，意味着以通常的方式从一个onlineaudiosource对象中读取样本并且提取mfcc/plp特征
 template <class E>
 class OnlineFeInput : public OnlineFeatInputItf {
  public:
-  // "au_src" - OnlineAudioSourceItf object
+  // "au_src" - OnlineAudioSourceItf对象
   // "fe" - 执行MFCC/PLP特征提取的对象
-  // "frame_size" - frame extraction window size in audio samples
-  // "frame_shift" - feature frame width in audio samples
+  // "frame_size" - 音频样本的帧提取窗口大小
+  // "frame_shift" - 音频样本的特征帧宽度
   OnlineFeInput(OnlineAudioSourceItf *au_src, E *fe,
                 const int32 frame_size, const int32 frame_shift);
 
@@ -303,13 +304,13 @@ OnlineFeInput<E>::OnlineFeInput(OnlineAudioSourceItf *au_src, E *fe,
 
 template<class E> bool
 OnlineFeInput<E>::Compute(Matrix<BaseFloat> *output) {
-  MatrixIndexT nvec = output->NumRows(); // the number of output vectors
+  MatrixIndexT nvec = output->NumRows(); // 输出特征的数量
   if (nvec <= 0) {
     KALDI_WARN << "No feature vectors requested?!";
     return true;
   }
 
-  // Prepare the input audio samples
+  
   //准备输入音频样本
   int32 samples_req = frame_size_ + (nvec - 1) * frame_shift_;
   Vector<BaseFloat> read_samples(samples_req);
@@ -355,15 +356,14 @@ class OnlineFeatureMatrix {
 
   int32 Dim() const { return feat_dim_; }
 
-  // GetFrame() will die if it's not a valid frame; you have to
+  //如果不是有效的帧  GetFrame() 调用失败; you have to
   // call IsValidFrame() for this frame, to see whether it
   // is valid.
   SubVector<BaseFloat> GetFrame(int32 frame);
 
   bool Good(); // 如果我们至少拥有一帧返回真值
  private:
-  void GetNextFeatures(); // called when we need more features.  Guarantees
-  // to get at least one more frame, or set finished_ = true.
+  void GetNextFeatures(); //当我们需要更多特征时调用.确保获得至少一帧或者将finished_设为true
   
   const OnlineFeatureMatrixOptions opts_;
   OnlineFeatInputItf *input_;

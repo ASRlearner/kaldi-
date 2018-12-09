@@ -79,6 +79,7 @@ class OnlinePaSource : public OnlineAudioSourceItf {
   // "report_interval": if not 0, PA ring buffer overflow will be reported
   //                    at every ovfw_msg_interval-th call to Read().
   //                    Putting 0 into this argument disables the reporting.
+  //解读这个成员函数
   OnlinePaSource(const uint32 timeout,
                  const uint32 sample_rate,
                  const uint32 rb_size,

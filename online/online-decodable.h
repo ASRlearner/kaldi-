@@ -32,6 +32,7 @@ namespace kaldi {
 
 
 // A decodable, taking input from an OnlineFeatureInput object on-demand
+//从onlinefeatureinput对象那里获得的可解码输入
 class OnlineDecodableDiagGmmScaled : public DecodableInterface {
  public:
   OnlineDecodableDiagGmmScaled(const AmDiagGmm &am,
@@ -52,8 +53,10 @@ class OnlineDecodableDiagGmmScaled : public DecodableInterface {
   void CacheFrame(int32 frame);
   
   OnlineFeatureMatrix *features_;
+  //由final.mdl那里得到的对角协方差混合高斯矩阵
   const AmDiagGmm &ac_model_;
   BaseFloat ac_scale_;
+  //同样由final.mdl文件那里得到的转移矩阵
   const TransitionModel &trans_model_;
   const int32 feat_dim_; // dimensionality of the input features
   Vector<BaseFloat> cur_feats_;

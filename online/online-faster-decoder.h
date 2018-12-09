@@ -66,16 +66,18 @@ struct OnlineFasterDecoderOpts : public FasterDecoderOptions {
   }
 };
 
+//继承自fasterdecoder
 class OnlineFasterDecoder : public FasterDecoder {
  public:
   // Codes returned by Decode() to show the current state of the decoder
+  //默认情况下枚举值第一个为0 第二个为1 以此类推
   enum DecodeState {
     kEndFeats = 1, // No more scores are available from the Decodable
-    kEndUtt = 2, // End of utterance, caused by e.g. a sufficiently long silence
-    kEndBatch = 4 // End of batch - end of utterance not reached yet
+    kEndUtt = 2, // End of utterance, caused by e.g. a sufficiently long silence语音结束
+    kEndBatch = 4 // End of batch - end of utterance not reached yet块终止
   };
 
-  // "sil_phones" - the IDs of all silence phones
+  // "sil_phones" - 所有静音音素的id
   OnlineFasterDecoder(const fst::Fst<fst::StdArc> &fst,
                       const OnlineFasterDecoderOpts &opts,
                       const std::vector<int32> &sil_phones,
@@ -94,6 +96,7 @@ class OnlineFasterDecoder : public FasterDecoder {
   // Makes a linear graph, by tracing back from the best currently active token
   // to the last immortal token. This method is meant to be invoked at the end
   // of an utterance in order to get the last chunk of the hypothesis
+  //通过从当前最活跃标记到最后一个恒定标记的追溯生成一个线性图。该方法在语音的结束阶段被调用
   void FinishTraceBack(fst::MutableFst<LatticeArc> *fst_out);
 
   // Returns "true" if the best current hypothesis ends with long enough silence
@@ -121,9 +124,9 @@ class OnlineFasterDecoder : public FasterDecoder {
   const TransitionModel &trans_model_; // needed for trans-id -> phone conversion
   const BaseFloat max_beam_; // the maximum allowed beam
   BaseFloat &effective_beam_; // the currently used beam
-  DecodeState state_; // the current state of the decoder
-  int32 frame_; // the next frame to be processed
-  int32 utt_frames_; // # frames processed from the current utterance
+  DecodeState state_; // the current state of the decoder当前的解码器状态
+  int32 frame_; // the next frame to be processed需要被处理的下一个帧
+  int32 utt_frames_; // # frames processed from the current utterance从当前语音中处理的帧
   Token *immortal_tok_;      // "immortal" token means it's an ancestor of ...
   Token *prev_immortal_tok_; // ... all currently active tokens
   KALDI_DISALLOW_COPY_AND_ASSIGN(OnlineFasterDecoder);

@@ -24,6 +24,7 @@
 
 namespace kaldi {
 
+//构造函数
 OnlineDecodableDiagGmmScaled::OnlineDecodableDiagGmmScaled(
     const AmDiagGmm &am, const TransitionModel &trans_model,
     const BaseFloat scale, OnlineFeatureMatrix *input_feats):  
