@@ -149,22 +149,17 @@ void OnlineCmnInput::OutputFrame(VectorBase<BaseFloat> *output) {
 
 #if !defined(_MSC_VER)
 
-//构造函数
 //udp端口输入 特征维度和udp端口号
 OnlineUdpInput::OnlineUdpInput(int32 port, int32 feature_dim):
     feature_dim_(feature_dim) {
-  //服务器地址结构的配置
   server_addr_.sin_family = AF_INET; // IPv4
   server_addr_.sin_addr.s_addr = INADDR_ANY; // 在所有接口上聆听
-  server_addr_.sin_port = htons(port);    //sin_port为udp端口号 需要转换为网络地址的顺序
+  server_addr_.sin_port = htons(port);    //sin_port为udp端口号
   sock_desc_ = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);  //套接字描述符
   //如果套接字描述符为-1 则函数调用失败
   if (sock_desc_ == -1)
     KALDI_ERR << "socket() call failed!";
-  //定义接收端缓冲区大小
   int32 rcvbuf_size = 30000;
-  //参数分别为套接字 套接字的层次(当前是通用套接字选项) 
-  //需要设置的选项名(当前是接收缓冲区大小) 包含新选项值得缓冲 
   if (setsockopt(sock_desc_, SOL_SOCKET, SO_RCVBUF,
                  &rcvbuf_size, sizeof(rcvbuf_size)) == -1)
       KALDI_ERR << "setsockopt() failed to set receive buffer size!";
@@ -195,16 +190,15 @@ bool OnlineUdpInput::Compute(Matrix<BaseFloat> *output) {
 
 #endif
 
-//在线lda特征输入类的构造函数
+
 OnlineLdaInput::OnlineLdaInput(OnlineFeatInputItf *input,
                                const Matrix<BaseFloat> &transform,
                                int32 left_context,
                                int32 right_context):
     input_(input), input_dim_(input->Dim()),
     left_context_(left_context), right_context_(right_context) {
-  //总的上下文依赖数
+
   int32 tot_context = left_context + 1 + right_context;
-  //判断lda矩阵的列数是否与输入的维度乘总上下文依赖数相同
   if (transform.NumCols() == input_dim_ * tot_context) {
     linear_transform_ = transform;
     // and offset_ stays empty.

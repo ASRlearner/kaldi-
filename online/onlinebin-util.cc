@@ -24,28 +24,23 @@
 
 namespace kaldi {
 
-//读取解码图函数 很重要
 fst::Fst<fst::StdArc> *ReadDecodeGraph(std::string filename) {
-  // 读取解码网络fst
+  // read decoding network FST
   Input ki(filename); // use ki.Stream() instead of is.
   if (!ki.Stream().good()) KALDI_ERR << "Could not open decoding-graph FST "
                                       << filename;
 
-  //在openfst中找到FstHeader类
   fst::FstHeader hdr;
-  //读取的是标准输入流 返回的是bool值
   if (!hdr.Read(ki.Stream(), "<unknown>")) {
     KALDI_ERR << "Reading FST: error reading FST header.";
   }
-  //StdArc是一个结构体
-  //判断fst的弧类型是否支持
   if (hdr.ArcType() != fst::StdArc::Type()) {
     KALDI_ERR << "FST with arc type " << hdr.ArcType() << " not supported.";
   }
   fst::FstReadOptions ropts("<unspecified>", &hdr);
 
   fst::Fst<fst::StdArc> *decode_fst = NULL;
-  //如果类型为向量或者为常量
+
   if (hdr.FstType() == "vector") {
     decode_fst = fst::VectorFst<fst::StdArc>::Read(ki.Stream(), ropts);
   } else if (hdr.FstType() == "const") {
